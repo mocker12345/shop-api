@@ -1,10 +1,15 @@
 import datetime
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+from functools import wraps
+
+from flask import Flask, jsonify
+from flask import abort
+from flask import request
+from flask_sqlalchemy import SQLAlchemy, BaseQuery
+from marshmallow import ValidationError
+from marshmallow import fields
 from sqlalchemy import Column, Integer, Numeric, String
 from flask_marshmallow import Marshmallow
 from sqlalchemy.dialects.mysql import MEDIUMTEXT
-
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:123456@127.0.0.1/ran1'
@@ -15,7 +20,6 @@ ma = Marshmallow(app)
 
 class Article(db.Model):
     __tablename__ = 'article'
-
     id = Column(db.Integer, primary_key=True)
     title = Column(db.String(255), nullable=False, unique=True)
     content = Column(MEDIUMTEXT, nullable=False)
@@ -37,6 +41,19 @@ class Article(db.Model):
     def __repr__(self):
         return '<Article %r>' % self.title
 
+    @staticmethod
+    def get_article_child(article_id):
+        child = relations_schema.dump(Relation.query.filter_by(parent=article_id).all())
+        child = [child_schema.dump(Article.query.get(i['child'])).data for i in child.data]
+        return child
+
+    @staticmethod
+    def get_article_price(article_id):
+        price = prices_schema.dump(Price.query.filter_by(article_id=article_id))
+        for i in price.data:
+            i['price'] = str(i['price'])
+        return price
+
 
 class Relation(db.Model):
     __tablename__ = 'relation'
@@ -57,9 +74,15 @@ class PriceSchema(ma.Schema):
         fields = ('id', 'site_name', 'price', 'site_url')
 
 
+prices_schema = PriceSchema(many=True)
+
+
 class ChildSchema(ma.Schema):
     class Meta:
         fields = ('id', 'title', 'summary', 'cover_url', 'category')
+
+
+child_schema = ChildSchema()
 
 
 class RelationSchema(ma.Schema):
@@ -67,9 +90,19 @@ class RelationSchema(ma.Schema):
         fields = ('id', 'parent', 'child')
 
 
+relations_schema = RelationSchema(many=True)
+
+
 class CategorySchema(ma.Schema):
+    def must_not_be_blank(data):
+        if not data:
+            raise ValidationError('data not allow blank')
+
+    name = fields.Str(validate=must_not_be_blank, required=True)
+    id = fields.Int(dump_only=True)
+
     class Meta:
-        fields = ('id', 'name')
+        type_ = 'categorys'
 
 
 class Category(db.Model):
@@ -84,10 +117,25 @@ class Category(db.Model):
     def __repr__(self):
         return '<Category %r>' % self.name
 
+    @staticmethod
+    def get_all_categorys():
+        categorys = db.session.query(Category).all()
+        return categorys
+
 
 class CommoditySchema(ma.Schema):
+    def must_not_be_blank(data):
+        if not data:
+            raise ValidationError('data not allow blank')
+
+    id = fields.Int(dump_only=True)
+    title = fields.Str(validate=must_not_be_blank, required=True)
+    cover_url = fields.Str(validate=must_not_be_blank, required=True)
+    price = fields.Number(validate=must_not_be_blank, required=True)
+    summary = fields.Str(required=False)
+    buy_url = fields.Str(validate=must_not_be_blank, required=True)
     class Meta:
-        fields = ('id', 'title', 'cover_url', 'price', 'summary', 'buy_url')
+        type_ = 'commoditys'
 
 
 class Commodity(db.Model):
@@ -128,6 +176,50 @@ class Price(db.Model):
 
     def __repr__(self):
         return '<Price %r>' % self.price
+
+
+def validate_json(f):
+    @wraps(f)
+    def wrapper(*args, **kw):
+        if request.get_json() is None:
+            msg = "must be a valid json"
+            return jsonify({"error": msg}), 400
+        return f(*args, **kw)
+
+    return wrapper
+
+
+def validate_schema(schema):
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kw):
+            data, errors = schema.load(request.get_json())
+            if errors:
+                return jsonify({'code': 400, 'errors': errors}), 400
+            return f(*args, **kw)
+
+        return wrapper
+
+    return decorator
+
+
+def set_pagination(limit, offset, schema):
+    if limit is None:
+        limit = 12
+    else:
+        try:
+            limit = int(limit)
+        except Exception, e:
+            abort(400)
+    if offset is None:
+        offset = 1
+    else:
+        try:
+            offset = int(offset)
+        except Exception, e:
+            abort(400)
+    pagination = schema.query.order_by().paginate(offset, per_page=limit, error_out=False)
+    return pagination, offset
 
 
 if __name__ == "__main__":

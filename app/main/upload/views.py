@@ -2,9 +2,7 @@ import datetime
 import random
 from flask import json, jsonify, make_response
 from qiniu import put_data, Auth
-
 from . import upload
-
 from flask import request
 
 

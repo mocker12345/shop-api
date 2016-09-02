@@ -1,5 +1,6 @@
 from flask import jsonify
 from flask import Flask
+from sqlalchemy.exc import IntegrityError
 from . import error
 
 app = Flask(__name__)
@@ -27,3 +28,8 @@ def not_valid(e):
 @error.app_errorhandler(500)
 def not_server_error(e):
     return jsonify({'error': 500, 'message': 'Unkown server error'})
+
+
+@error.app_errorhandler(IntegrityError)
+def valid_exist(e):
+    return jsonify({'error': 4000, 'message': 'name is exist'})

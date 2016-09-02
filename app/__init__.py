@@ -15,8 +15,10 @@ def create_app():
     from main.category import category
     from main.commodity import commodity
     from main.upload import upload
+    from main import error
     app.register_blueprint(article)
     app.register_blueprint(category)
     app.register_blueprint(commodity)
     app.register_blueprint(upload)
+    app.register_blueprint(error)
     return app

@@ -1,4 +1,6 @@
 import datetime
+from functools import wraps
+
 from flask import jsonify
 from flask import abort
 from flask import request
@@ -15,56 +17,52 @@ relation_schema = models.RelationSchema()
 prices_schema = models.PriceSchema(many=True)
 
 
-@article.route('/article/<article_id>', methods=['GET', 'PUT', 'DELETE'])
+@article.route('/article/<int:article_id>', methods=['GET', 'PUT', 'DELETE'])
 def api_article_by_id(article_id):
-    try:
-        int_id = int(article_id)
-    except:
-        abort(400)
-    article = Article.query.get(int_id)
-    if article is None:
-        abort(404)
+
     if request.method == 'DELETE':
-        article = db.session.query(Article).get(int_id)
-        price = db.session.query(Price).filter_by(article_id=int_id).all()
-        relation = db.session.query(Relation).filter_by(parent=int_id).all()
-        print article
-        print price
-        print relation
+        article = db.session.query(Article).get(article_id)
+        price = db.session.query(Price).filter_by(article_id=article_id).all()
+        relation = db.session.query(Relation).filter_by(parent=article_id).all()
         db.session.delete(article)
-        if len(price) != 0:
-            for i in price:
-                db.session.delete(i)
-        if len(relation) != 0:
-            for i in relation:
-                db.session.delete(i)
+        for i in price:
+            db.session.delete(i)
+        for i in relation:
+            db.session.delete(i)
         try:
             db.session.commit()
         except Exception, e:
             return e.message
         return jsonify({"success": True})
     if request.method == 'GET':
-        child = relations_schema.dump(Relation.query.filter_by(parent=int_id).all())
-        if len(child.data) is not 0:
-            child = [child_schema.dump(Article.query.get(i['child'])).data for i in child.data]
-            article.children = child
-            # print article.children
-            # print child
-            # print(child_schema.jsonify())
-            # a = Article.query.get(7)
-            # a.children = []
-            # a.price = []
-            # article.children = [article_schema.dump(a).data]
-        else:
-            child = []
-            article.children = child
-        price = prices_schema.dump(Price.query.filter_by(article_id=int_id))
-        if len(price.data) is 0:
-            article.price = []
-        else:
-            for i in price.data:
-                i['price'] = str(i['price'])
-            article.price = price.data
+        article = Article.query.get(article_id)
+        if article is None:
+            abort(404)
+        print article
+        child = Article.get_article_child(article_id)
+        article.children = child
+        # child = relations_schema.dump(Relation.query.filter_by(parent=int_id).all())
+        # if len(child.data) is not 0:
+        #     child = [child_schema.dump(Article.query.get(i['child'])).data for i in child.data]
+        #     article.children = child
+        #     # print article.children
+        #     # print child
+        #     # print(child_schema.jsonify())
+        #     # a = Article.query.get(7)
+        #     # a.children = []
+        #     # a.price = []
+        #     # article.children = [article_schema.dump(a).data]
+        # else:
+        #     child = []
+        #     article.children = child
+        # price = prices_schema.dump(Price.query.filter_by(article_id=article_id))
+        # if len(price.data) is 0:
+        #     article.price = []
+        # else:
+        #     for i in price.data:
+        #         i['price'] = str(i['price'])
+        price = Article.get_article_price(article_id)
+        article.price = price.data
         return article_schema.jsonify(article)
     if request.method == 'PUT':
         req = request.get_json()
@@ -82,8 +80,6 @@ def api_article_by_id(article_id):
             for i in old_price:
                 db.session.delete(i)
             db.session.commit()
-
-        # old_children = Relation.query.filter_by(parent=req['id']).all()
         old_children = db.session.query(Relation).filter_by(parent=req['id']).all()
         if old_children is not None:
             for i in old_children:
@@ -118,23 +114,7 @@ def api_articles():
     if request.method == 'GET':
         limit = request.args.get('limit')
         offset = request.args.get('offset')
-
-        if limit is None:
-            limit = 12
-        else:
-            try:
-                limit = int(limit)
-            except Exception, e:
-                abort(400)
-        if offset is None:
-            offset = 1
-        else:
-            try:
-                offset = int(offset)
-            except Exception, e:
-                abort(400)
-        pagination = Article.query.order_by(Article.create_time.desc()).paginate(offset, per_page=limit,
-                                                                                 error_out=False)
+        pagination, offset = models.set_pagination(limit, offset, Article)
         articles = pagination.items
         pages_num = pagination.pages
         for i in articles:
