@@ -1,3 +1,5 @@
+import json
+
 from app.models import Article, Category
 from . import category
 from flask import jsonify
@@ -19,8 +21,9 @@ def api_category_by_id(category_id):
         category.name = req['name']
         db.session.add(category)
         db.session.commit()
-        result = categorys_schema.dump(Category.get_all_categorys())
-        return jsonify({'success': True, 'data': result.data})
+
+        result = json.loads(api_category_all().data)
+        return jsonify({'success': True, 'data': result['data']})
 
 
 @category.route('/category/<int:category_id>', methods=['DELETE'])
@@ -36,8 +39,8 @@ def api_delete_category(category_id):
             db.session.commit()
         except Exception, e:
             return e.message
-        result = categorys_schema.dump(Category.get_all_categorys())
-        return jsonify({'success': True, 'data': result.data})
+        result = json.loads(api_category_all().data)
+        return jsonify({'success': True, 'data':result['data']})
 
 
 @category.route('/category', methods=['GET'])
@@ -56,5 +59,5 @@ def api_category_add():
         category = Category(name=req['name'])
         db.session.add(category)
         db.session.commit()
-        result = categorys_schema.dump(Category.get_all_categorys())
-        return jsonify({'success': True, 'data': result.data})
+        result = json.loads(api_category_all().data)
+        return jsonify({'success': True, 'data': result['data']})

@@ -5,3 +5,5 @@ flask_marshmallow
 Flask-Script
 Flask-Migrate
 flask-testing
+qiniu
+flask_cors

@@ -63,10 +63,9 @@ class Relation(db.Model):
     child = Column(db.Integer, nullable=False)
 
 
-class ArticleSchema(ma.Schema):
+class ChildSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'title', 'content', 'good', 'cover_url',
-                  'summary', 'category', 'create_time', 'children', 'price')
+        fields = ('id', 'title', 'summary', 'cover_url', 'category')
 
 
 class PriceSchema(ma.Schema):
@@ -74,13 +73,24 @@ class PriceSchema(ma.Schema):
         fields = ('id', 'site_name', 'price', 'site_url')
 
 
-prices_schema = PriceSchema(many=True)
+class ArticleSchema(ma.Schema):
+    def must_not_be_blank(data):
+        if not data:
+            raise ValidationError('data not allow blank')
 
+    id = fields.Int(dump_only=True)
+    title = fields.Str(validate=must_not_be_blank, required=True)
+    content = fields.Str(validate=must_not_be_blank, required=True)
+    cover_url = fields.Str(validate=must_not_be_blank, required=True)
+    category = fields.Int(required=True)
+    summary = fields.Str(validate=must_not_be_blank,required=True)
 
-class ChildSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'title', 'summary', 'cover_url', 'category')
+        fields = ('id', 'title', 'content', 'good', 'cover_url',
+                  'summary', 'category', 'create_time', 'children', 'price')
 
+
+prices_schema = PriceSchema(many=True)
 
 child_schema = ChildSchema()
 
@@ -117,10 +127,6 @@ class Category(db.Model):
     def __repr__(self):
         return '<Category %r>' % self.name
 
-    @staticmethod
-    def get_all_categorys():
-        categorys = db.session.query(Category).all()
-        return categorys
 
 
 class CommoditySchema(ma.Schema):
@@ -134,6 +140,7 @@ class CommoditySchema(ma.Schema):
     price = fields.Number(validate=must_not_be_blank, required=True)
     summary = fields.Str(required=False)
     buy_url = fields.Str(validate=must_not_be_blank, required=True)
+
     class Meta:
         type_ = 'commoditys'
 
@@ -183,7 +190,7 @@ def validate_json(f):
     def wrapper(*args, **kw):
         if request.get_json() is None:
             msg = "must be a valid json"
-            return jsonify({"error": msg}), 400
+            return jsonify({'code':400,"error": msg}), 400
         return f(*args, **kw)
 
     return wrapper
