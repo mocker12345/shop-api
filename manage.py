@@ -1,8 +1,10 @@
-from flask.ext.script import Manager, Shell
+from flask_script import Manager, Shell
 from app import create_app, db
 from app.models import Article, Category, Price, Commodity
-from flask.ext.migrate import Migrate, MigrateCommand
+from flask_migrate import Migrate, MigrateCommand
 from flask_cors import CORS
+
+
 
 app = create_app()
 CORS(app)

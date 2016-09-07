@@ -7,3 +7,5 @@ Flask-Migrate
 flask-testing
 qiniu
 flask_cors
+redis
+flask_cache
