@@ -17,7 +17,7 @@ relation_schema = models.RelationSchema()
 prices_schema = models.PriceSchema(many=True)
 
 
-@article.route('/article/<int:article_id>',methods=['PUT'])
+@article.route('/article/<int:article_id>', methods=['PUT'])
 @models.validate_json
 @models.validate_schema(article_schema)
 def api_update_article(article_id):
@@ -47,29 +47,29 @@ def api_update_article(article_id):
                 price = Price(article_id=req['id'], site_url=i['site_url'],
                               site_name=i['site_name'], price=i['price'])
                 db.session.add(price)
-            # try:
-            #     db.session.commit()
-            # except Exception, e:
-            #     return e.message
+                # try:
+                #     db.session.commit()
+                # except Exception, e:
+                #     return e.message
         if 'children' in req and len(req['children']) != 0:
             children = req['children']
             for i in children:
                 child = Relation(parent=req['id'], child=i['id'])
                 db.session.add(child)
-            # try:
-            #     db.session.commit()
-            # except Exception, e:
-            #     return e.message
+                # try:
+                #     db.session.commit()
+                # except Exception, e:
+                #     return e.message
         try:
             db.session.commit()
-        except Exception,e:
+        except Exception, e:
             return e.message
 
         return jsonify({"success": True})
 
+
 @article.route('/article/<int:article_id>', methods=['GET', 'DELETE'])
 def api_article_by_id(article_id):
-
     if request.method == 'DELETE':
         article = db.session.query(Article).get(article_id)
         price = db.session.query(Price).filter_by(article_id=article_id).all()
@@ -115,7 +115,8 @@ def api_article_by_id(article_id):
         article.price = price.data
         return article_schema.jsonify(article)
 
-@article.route('/article',methods= ['POST'])
+
+@article.route('/article', methods=['POST'])
 @models.validate_json
 @models.validate_schema(article_schema)
 def api_add_article():
@@ -139,7 +140,7 @@ def api_add_article():
                 db.session.add(insert)
             try:
                 db.session.commit()
-            except Exception,e:
+            except Exception, e:
                 db.session.rollback()
                 return e.message
         if 'children' in req and len(req['children']) != 0:
@@ -149,18 +150,33 @@ def api_add_article():
                 db.session.add(insert)
             try:
                 db.session.commit()
-            except Exception,e:
+            except Exception, e:
                 db.session.rollback()
                 return e.message
 
-        return jsonify({"code":201,"success": True})
+        return jsonify({"code": 201, "success": True})
+
 
 @article.route('/article', methods=['GET'])
 def api_articles():
     if request.method == 'GET':
         limit = request.args.get('limit')
         offset = request.args.get('offset')
-        pagination, offset = models.set_pagination(limit, offset, Article)
+        if limit is None:
+            limit = 12
+        else:
+            try:
+                limit = int(limit)
+            except Exception, e:
+                abort(400)
+        if offset is None:
+            offset = 1
+        else:
+            try:
+                offset = int(offset)
+            except Exception, e:
+                abort(400)
+        pagination = Article.query.order_by().paginate(offset, per_page=limit, error_out=False)
         articles = pagination.items
         pages_num = pagination.pages
         for i in articles:
