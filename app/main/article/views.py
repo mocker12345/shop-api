@@ -5,7 +5,7 @@ from flask import jsonify
 from flask import abort
 from flask import request
 import app.models as models
-from app import db, cache
+from app import db
 from app.models import Article, Relation, Price
 from . import article
 
@@ -156,7 +156,6 @@ def api_add_article():
         return jsonify({"code":201,"success": True})
 
 @article.route('/article', methods=['GET'])
-@cache.cached(timeout=60)
 def api_articles():
     if request.method == 'GET':
         limit = request.args.get('limit')
