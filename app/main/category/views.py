@@ -3,12 +3,14 @@ import json
 from app.models import Article, Category
 from . import category
 from flask import jsonify
+from flask import abort
 from app import db
 from flask import request
 import app.models as models
 
 categorys_schema = models.CategorySchema(many=True)
 category_schema = models.CategorySchema()
+articles_schema = models.ArticleSchema(many=True)
 
 
 @category.route('/category/<int:category_id>', methods=['PUT'])
@@ -61,3 +63,31 @@ def api_category_add():
         db.session.commit()
         result = json.loads(api_category_all().data)
         return jsonify({'success': True, 'data': result['data']})
+
+@category.route('/category/<int:category_id>/articles',methods=['GET'])
+def api_get_articles_by_category(category_id):
+    limit = request.args.get('limit')
+    offset = request.args.get('offset')
+    if limit is None:
+        limit = 18
+    else:
+        try:
+            limit = int(limit)
+        except Exception, e:
+            abort(400)
+    if offset is None:
+        offset = 1
+    else:
+        try:
+            offset = int(offset)
+        except Exception, e:
+            abort(400)
+    pagination = Article.query.filter_by(category=category_id)\
+        .order_by(Article.create_time.desc()).paginate(offset, per_page=limit, error_out=False)
+    articles = pagination.items
+    pages_num = pagination.pages
+    for i in articles:
+            i.price = []
+            i.children = []
+    result = articles_schema.dump(articles)
+    return jsonify({'data': result.data, 'total_page': pages_num, 'offset': offset})
