@@ -162,21 +162,7 @@ def api_articles():
     if request.method == 'GET':
         limit = request.args.get('limit')
         offset = request.args.get('offset')
-        if limit is None:
-            limit = 12
-        else:
-            try:
-                limit = int(limit)
-            except Exception, e:
-                abort(400)
-        if offset is None:
-            offset = 1
-        else:
-            try:
-                offset = int(offset)
-            except Exception, e:
-                abort(400)
-        pagination = Article.query.order_by().paginate(offset, per_page=limit, error_out=False)
+        pagination,offset = models.set_pagination(limit, offset, Article)
         articles = pagination.items
         pages_num = pagination.pages
         for i in articles:

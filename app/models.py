@@ -13,7 +13,7 @@ from sqlalchemy.dialects.mysql import MEDIUMTEXT
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:123456@180.76.132.102/sakura'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:123456@127.0.0.1/ran1'
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 

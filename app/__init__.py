@@ -1,14 +1,15 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-
-db = SQLAlchemy()
-ma = Marshmallow()
+from models import db
+from models import ma
+from models import app
 
 def create_app():
 
-    app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:123456@180.76.132.102/sakura'
+    # app = Flask(__name__)
+    # # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:123456@180.76.132.102/sakura'
+    # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:123456@127.0.0.1/ran1'
     db.init_app(app)
     ma.init_app(app)
     from main.article import article
