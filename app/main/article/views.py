@@ -123,7 +123,7 @@ def api_add_article():
     if request.method == 'POST':
         req = request.get_json()
         insert = Article(title=req['title'], content=req['content'],
-                         good=req['good'], cover_url=req['cover_url'],
+                         good=0, cover_url=req['cover_url'],
                          category=req['category'],
                          create_time=datetime.datetime.now(),
                          summary=req['summary'])
