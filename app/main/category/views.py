@@ -42,14 +42,14 @@ def api_delete_category(category_id):
         except Exception, e:
             return e.message
         result = json.loads(api_category_all().data)
-        return jsonify({'success': True, 'data':result['data']})
+        return jsonify({'success': True, 'data': result['data']})
 
 
 @category.route('/category', methods=['GET'])
 def api_category_all():
     categorys = db.session.query(Category).all()
     result = categorys_schema.dump(categorys)
-    return jsonify({'data': result.data})
+    return jsonify({'data': result.data, 'success': True})
 
 
 @category.route('/category', methods=['POST'])
@@ -64,7 +64,8 @@ def api_category_add():
         result = json.loads(api_category_all().data)
         return jsonify({'success': True, 'data': result['data']})
 
-@category.route('/category/<int:category_id>/articles',methods=['GET'])
+
+@category.route('/category/<int:category_id>/articles', methods=['GET'])
 def api_get_articles_by_category(category_id):
     limit = request.args.get('limit')
     offset = request.args.get('offset')
@@ -82,12 +83,12 @@ def api_get_articles_by_category(category_id):
             offset = int(offset)
         except Exception, e:
             abort(400)
-    pagination = Article.query.filter_by(category=category_id)\
+    pagination = Article.query.filter_by(category=category_id) \
         .order_by(Article.create_time.desc()).paginate(offset, per_page=limit, error_out=False)
     articles = pagination.items
     pages_num = pagination.pages
     for i in articles:
-            i.price = []
-            i.children = []
+        i.price = []
+        i.children = []
     result = articles_schema.dump(articles)
     return jsonify({'data': result.data, 'total_page': pages_num, 'offset': offset})
