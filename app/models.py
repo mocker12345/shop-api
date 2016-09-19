@@ -209,6 +209,21 @@ def validate_schema(schema):
 
     return decorator
 
+def need_token():
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kw):
+            auth_header = request.headers['Authorization']
+            if auth_header is None:
+                return jsonify({'code': 401, 'errors': "is not login"}), 401
+
+
+            return f(*args, **kw)
+
+        return wrapper
+
+    return decorator
+
 
 def set_pagination(limit, offset, schema):
     if limit is None:
