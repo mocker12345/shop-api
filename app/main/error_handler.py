@@ -2,7 +2,7 @@ from flask import jsonify
 from flask import Flask
 from sqlalchemy.exc import IntegrityError
 from . import error
-from app import db
+
 
 app = Flask(__name__)
 

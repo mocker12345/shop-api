@@ -8,3 +8,4 @@ qiniu
 flask_cors
 gunicorn
 MySQL-python
+httplib2
