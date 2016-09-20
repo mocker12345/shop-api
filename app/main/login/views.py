@@ -1,9 +1,11 @@
 import hashlib
+import random
 from functools import wraps
 
 import httplib2
 from json import dumps
 
+import time
 from flask import json
 
 from app import models
@@ -35,14 +37,29 @@ def login():
     return jsonify(content)
 
 
-def valid_header(auth_header):
-    info = auth_header.splite(';')
-    access_token = info[0].splite('=')[1]
-    mac = info[2].splite('=')[1]
-    nonce = info[1].splite('=')[1]
-    data = {'mac':mac,'nonce':nonce}
-
-
+def valid_header(header):
+    auth_header = header.get('Authorization')
+    method = request.method
+    host = "0.0.0.0:8000"
+    uri = request.path
+    info = str(auth_header).split(',')
+    access_token = info[0].split('=')[1].replace('\"','')
+    mac = info[2].split('=')[1].replace('\"','')+'='
+    # seed = "0123456789abcdefghijklmnopqrstuvwxyz"
+    # sa = []
+    # for i in range(8):
+    #     sa.append(random.choice(seed))
+    # salt = ''.join(sa)
+    nonce = info[1].split('=')[1].replace('\"','')
+    # nonce = str(int(time.time()*1000)) + ":"+salt
+    data = {'mac':mac,'nonce':nonce,'http_method':method,'request_uri':uri,"host":host}
+    h = httplib2.Http('.cache', disable_ssl_certificate_validation=True)
+    urlstr = "https://ucbetapi.101.com/v0.93/tokens/"+access_token+"/actions/valid"
+    response, content = h.request(urlstr, 'POST', dumps(data), headers={'Content-Type': 'application/json'})
+    content = json.loads(content)
+    # if ('message' in content):
+    #     return jsonify(content),401
+    return content,401
 
 def valid_token():
     def decorator(f):
@@ -52,7 +69,11 @@ def valid_token():
             if auth_header is None:
                 return jsonify({'code': 401, 'errors': "is not login"}), 401
             else:
-                valid_header(auth_header)
+                content,status = valid_header(request.headers)
+                if status == 401 :
+                    return jsonify(content) ,401
+
+
             return f(*args, **kw)
 
         return wrapper

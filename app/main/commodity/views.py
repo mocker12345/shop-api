@@ -1,3 +1,4 @@
+from app.main.login.views import valid_token
 from app.models import Commodity
 from . import commodity
 from flask import json
@@ -12,6 +13,7 @@ commodity_schema = models.CommoditySchema()
 
 
 @commodity.route('/commodity', methods=['GET'])
+@valid_token()
 def api_commodity_all():
     limit = request.args.get('limit')
     offset = request.args.get('offset')
