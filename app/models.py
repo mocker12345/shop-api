@@ -83,7 +83,7 @@ class ArticleSchema(ma.Schema):
     content = fields.Str(validate=must_not_be_blank, required=True)
     cover_url = fields.Str(validate=must_not_be_blank, required=True)
     category = fields.Int(required=True)
-    summary = fields.Str(validate=must_not_be_blank,required=True)
+    summary = fields.Str(validate=must_not_be_blank, required=True)
 
     class Meta:
         fields = ('id', 'title', 'content', 'good', 'cover_url',
@@ -126,7 +126,6 @@ class Category(db.Model):
 
     def __repr__(self):
         return '<Category %r>' % self.name
-
 
 
 class CommoditySchema(ma.Schema):
@@ -190,7 +189,7 @@ def validate_json(f):
     def wrapper(*args, **kw):
         if request.get_json() is None:
             msg = "must be a valid json"
-            return jsonify({'code':400,"error": msg}), 400
+            return jsonify({'code': 400, "error": msg}), 400
         return f(*args, **kw)
 
     return wrapper
@@ -203,21 +202,6 @@ def validate_schema(schema):
             data, errors = schema.load(request.get_json())
             if errors:
                 return jsonify({'code': 400, 'errors': errors}), 400
-            return f(*args, **kw)
-
-        return wrapper
-
-    return decorator
-
-def need_token():
-    def decorator(f):
-        @wraps(f)
-        def wrapper(*args, **kw):
-            auth_header = request.headers['Authorization']
-            if auth_header is None:
-                return jsonify({'code': 401, 'errors': "is not login"}), 401
-
-
             return f(*args, **kw)
 
         return wrapper

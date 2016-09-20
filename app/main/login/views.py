@@ -1,5 +1,5 @@
 import hashlib
-
+from functools import wraps
 
 import httplib2
 from json import dumps
@@ -22,30 +22,39 @@ def login():
     username = req['username']
     password = req['password'].encode()
     data_key = "fdjf,jkgfkl"
-    a = bytearray(data_key)
-    data_pwd = bytearray(password)
-    size_key = len(a)
-    size_pwd = len(data_pwd)
-    data = bytearray(size_key + 4 + size_pwd)
-    i = 0
-    for item in data_pwd:
-        data[i] = item
-        i += 1
-
-    add = bytearray([163, 172, 161, 163])
-    for item in add:
-        data[i] = item
-        i += 1
-    for item in a:
-        data[i] = item
-        i += 1
-    m = hashlib.md5()
-    m.update(data)
-    password = m.hexdigest()
-
+    b = password + chr(163) + chr(172) + chr(161) + chr(163) + data_key
+    c = bytearray(b)
+    md5 = hashlib.md5()
+    md5.update(c)
+    password = md5.hexdigest()
     h = httplib2.Http('.cache', disable_ssl_certificate_validation=True)
     data = {'login_name': username, "password": password, "org_name": "qcqh_sakura"}
     urlstr = "https://ucbetapi.101.com/v0.93/tokens"
-    response, content = h.request(urlstr, 'POST', dumps(data), headers={'Content-Type': 'application/json'});
+    response, content = h.request(urlstr, 'POST', dumps(data), headers={'Content-Type': 'application/json'})
     content = json.loads(content)
     return jsonify(content)
+
+
+def valid_header(auth_header):
+    info = auth_header.splite(';')
+    access_token = info[0].splite('=')[1]
+    mac = info[2].splite('=')[1]
+    nonce = info[1].splite('=')[1]
+    data = {'mac':mac,'nonce':nonce}
+
+
+
+def valid_token():
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kw):
+            auth_header = request.headers.get('Authorization')
+            if auth_header is None:
+                return jsonify({'code': 401, 'errors': "is not login"}), 401
+            else:
+                valid_header(auth_header)
+            return f(*args, **kw)
+
+        return wrapper
+
+    return decorator
