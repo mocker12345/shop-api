@@ -13,7 +13,6 @@ commodity_schema = models.CommoditySchema()
 
 
 @commodity.route('/commodity', methods=['GET'])
-@valid_token()
 def api_commodity_all():
     limit = request.args.get('limit')
     offset = request.args.get('offset')
@@ -27,6 +26,7 @@ def api_commodity_all():
 
 
 @commodity.route('/commodity', methods=['POST'])
+@valid_token()
 @models.validate_json
 @models.validate_schema(commodity_schema)
 def api_commodity_add():
@@ -40,6 +40,7 @@ def api_commodity_add():
 
 
 @commodity.route('/commodity/<int:commodity_id>', methods=['DELETE'])
+@valid_token()
 def api_delete_commodity(commodity_id):
     commodity = db.session.query(Commodity).get(commodity_id)
     if commodity is None:
@@ -55,6 +56,7 @@ def api_delete_commodity(commodity_id):
 
 
 @commodity.route('/commodity/<int:commodity_id>', methods=['PUT'])
+@valid_token()
 @models.validate_json
 @models.validate_schema(commodity_schema)
 def api_commodity_by_id(commodity_id):
