@@ -94,11 +94,14 @@ def api_delete_by_id(article_id):
         article = Article.query.get(article_id)
         if article is None:
             abort(404)
-        print article
+
         child = Article.get_article_child(article_id)
         article.children = child
         price = Article.get_article_price(article_id)
         article.price = price.data
+        article.good = article.good + 1
+        db.session.add(article)
+        db.session.commit()
         return article_schema.jsonify(article)
 
 
@@ -149,7 +152,8 @@ def api_articles():
     if request.method == 'GET':
         limit = request.args.get('limit')
         offset = request.args.get('offset')
-        pagination,offset = models.set_pagination(limit, offset, Article)
+        order_by = request.args.get('order')
+        pagination, offset = models.set_pagination(limit, offset, Article, order_by)
         articles = pagination.items
         pages_num = pagination.pages
         for i in articles:

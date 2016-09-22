@@ -209,7 +209,7 @@ def validate_schema(schema):
     return decorator
 
 
-def set_pagination(limit, offset, schema):
+def set_pagination(limit, offset, schema, order_by=None):
     if limit is None:
         limit = 12
     else:
@@ -224,7 +224,11 @@ def set_pagination(limit, offset, schema):
             offset = int(offset)
         except Exception, e:
             abort(400)
-    pagination = schema.query.order_by().paginate(offset, per_page=limit, error_out=False)
+
+    if order_by == 'good':
+        pagination = schema.query.order_by(schema.good.desc()).paginate(offset, per_page=limit, error_out=False)
+    else:
+        pagination = schema.query.order_by(schema.create_time.desc()).paginate(offset, per_page=limit, error_out=False)
     return pagination, offset
 
 
