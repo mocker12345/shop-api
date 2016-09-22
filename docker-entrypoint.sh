@@ -1,4 +1,4 @@
-# python /code/app/models.py
+python /code/app/models.py
 #python /code/manage.py db init
 #python /code/manage.py db migrate
 python /code/manage.py

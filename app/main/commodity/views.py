@@ -1,3 +1,5 @@
+import datetime
+
 from app.main.login.views import valid_token
 from app.models import Commodity
 from . import commodity
@@ -31,8 +33,8 @@ def api_commodity_all():
 @models.validate_schema(commodity_schema)
 def api_commodity_add():
     req = request.get_json()
-    insert = Commodity(title=req['title'], cover_url=req['cover_url'], price=req['price'],
-                       summary=req['summery'], buy_url=req['buy_url'])
+    insert = Commodity(title=req['title'], cover_url=req['cover_url'], price=req['price'], summary=req['summary'],
+                       buy_url=req['buy_url'], create_time=datetime.datetime.now())
     db.session.add(insert)
     db.session.commit()
     commoditys = json.loads(api_commodity_all().data)

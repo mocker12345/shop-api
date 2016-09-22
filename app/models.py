@@ -153,13 +153,15 @@ class Commodity(db.Model):
     price = Column(Numeric(10, 2), nullable=False)
     summary = Column(String(255), nullable=True, default=None)
     buy_url = Column(String(255), nullable=False)
+    create_time = Column(db.DATETIME, default=datetime.datetime, nullable=False)
 
-    def __init__(self, title, cover_url, price, summary, buy_url):
+    def __init__(self, title, cover_url, price, summary, buy_url, create_time):
         self.title = title
         self.cover_url = cover_url
         self.price = price
         self.summary = summary
         self.buy_url = buy_url
+        self.create_time = create_time
 
     def __repr__(self):
         return '<Commodity %r>' % self.title
