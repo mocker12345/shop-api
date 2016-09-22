@@ -52,9 +52,9 @@ def valid_header(header):
     response, content = h.request(urlstr, 'POST', dumps(data), headers={'Content-Type': 'application/json'})
     content = json.loads(content)
     if 'message' in content:
-        return content, 401
+        return False
     else:
-        return content, 200
+        return True
 
 
 def valid_token():
@@ -62,12 +62,8 @@ def valid_token():
         @wraps(f)
         def wrapper(*args, **kw):
             auth_header = request.headers.get('Authorization')
-            if auth_header is None:
-                return jsonify({'code': 401, 'errors': "is not login"}), 401
-            else:
-                content, status = valid_header(request.headers)
-                if status == 401:
-                    return jsonify(content), 401
+            if not auth_header or not valid_header(request.headers):
+                return jsonify({'code': 401, 'errors': 'Unauthorized error'}), 401
 
             return f(*args, **kw)
 

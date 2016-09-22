@@ -2,6 +2,8 @@ import datetime
 import random
 from flask import json, jsonify, make_response
 from qiniu import put_data, Auth
+
+from app.main.login.views import valid_token
 from . import upload
 from flask import request
 
@@ -12,6 +14,7 @@ def gen_rnd_filename():
 
 
 @upload.route('/uptoken/', methods=['GET'])
+@valid_token()
 def upload_token():
     access_key = 'KwiWX_tDNWUafhJmsaOvbCeImLUFjnez0nuJEdt3'
     secret_key = '69U1YTlBlHJKMqMD_xJ3I56b0OkdUhvHgtMmeVvt'
@@ -23,6 +26,7 @@ def upload_token():
 
 
 @upload.route('/upload', methods=['POST'])
+@valid_token()
 def upload():
     fs = request.files['file']
     key = gen_rnd_filename() + fs.filename

@@ -1,5 +1,6 @@
 import json
 
+from app.main.login.views import valid_token
 from app.models import Article, Category
 from . import category
 from flask import jsonify
@@ -14,6 +15,7 @@ articles_schema = models.ArticleSchema(many=True)
 
 
 @category.route('/category/<int:category_id>', methods=['PUT'])
+@valid_token()
 @models.validate_json
 @models.validate_schema(category_schema)
 def api_category_by_id(category_id):
@@ -29,6 +31,7 @@ def api_category_by_id(category_id):
 
 
 @category.route('/category/<int:category_id>', methods=['DELETE'])
+@valid_token()
 def api_delete_category(category_id):
     if request.method == 'DELETE':
         category = db.session.query(Category).get(category_id)
@@ -53,6 +56,7 @@ def api_category_all():
 
 
 @category.route('/category', methods=['POST'])
+@valid_token()
 @models.validate_json
 @models.validate_schema(category_schema)
 def api_category_add():

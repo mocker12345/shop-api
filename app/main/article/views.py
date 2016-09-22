@@ -6,6 +6,7 @@ from flask import abort
 from flask import request
 import app.models as models
 from app import db
+from app.main.login.views import valid_token
 from app.models import Article, Relation, Price
 from . import article
 
@@ -18,6 +19,7 @@ prices_schema = models.PriceSchema(many=True)
 
 
 @article.route('/article/<int:article_id>', methods=['PUT'])
+@valid_token()
 @models.validate_json
 @models.validate_schema(article_schema)
 def api_update_article(article_id):
@@ -68,7 +70,7 @@ def api_update_article(article_id):
         return jsonify({"success": True})
 
 
-@article.route('/article/<int:article_id>', methods=['GET', 'DELETE'])
+@article.route('/article/<int:article_id>', methods=['DELETE'])
 def api_article_by_id(article_id):
     if request.method == 'DELETE':
         article = db.session.query(Article).get(article_id)
@@ -84,6 +86,10 @@ def api_article_by_id(article_id):
         except Exception, e:
             return e.message
         return jsonify({"success": True})
+
+
+@article.route('/article/<int:article_id>', methods=['GET'])
+def api_delete_by_id(article_id):
     if request.method == 'GET':
         article = Article.query.get(article_id)
         if article is None:
@@ -91,32 +97,13 @@ def api_article_by_id(article_id):
         print article
         child = Article.get_article_child(article_id)
         article.children = child
-        # child = relations_schema.dump(Relation.query.filter_by(parent=int_id).all())
-        # if len(child.data) is not 0:
-        #     child = [child_schema.dump(Article.query.get(i['child'])).data for i in child.data]
-        #     article.children = child
-        #     # print article.children
-        #     # print child
-        #     # print(child_schema.jsonify())
-        #     # a = Article.query.get(7)
-        #     # a.children = []
-        #     # a.price = []
-        #     # article.children = [article_schema.dump(a).data]
-        # else:
-        #     child = []
-        #     article.children = child
-        # price = prices_schema.dump(Price.query.filter_by(article_id=article_id))
-        # if len(price.data) is 0:
-        #     article.price = []
-        # else:
-        #     for i in price.data:
-        #         i['price'] = str(i['price'])
         price = Article.get_article_price(article_id)
         article.price = price.data
         return article_schema.jsonify(article)
 
 
 @article.route('/article', methods=['POST'])
+@valid_token()
 @models.validate_json
 @models.validate_schema(article_schema)
 def api_add_article():
