@@ -14,7 +14,6 @@ def gen_rnd_filename():
 
 
 @upload.route('/uptoken/', methods=['GET'])
-@valid_token()
 def upload_token():
     access_key = 'KwiWX_tDNWUafhJmsaOvbCeImLUFjnez0nuJEdt3'
     secret_key = '69U1YTlBlHJKMqMD_xJ3I56b0OkdUhvHgtMmeVvt'

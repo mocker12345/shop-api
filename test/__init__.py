@@ -1,14 +1,10 @@
-from flask_testing import TestCase as Base
+import urllib2
+
+from flask_testing import LiveServerTestCase
 from app import create_app, db
+from app.models import Category
 
 
-class TestCase(Base):
+class TestCase(LiveServerTestCase):
     def create_app(self):
-        app = create_app()
-        return app
-
-    def setUp(self):
-        db.create_all()
-
-    def tearDown(self):
-        db.drop_all()
+        return create_app("testing")

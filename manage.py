@@ -4,7 +4,7 @@ from app.models import Article, Category, Price, Commodity
 from flask_migrate import Migrate, MigrateCommand
 from flask_cors import CORS
 
-app = create_app()
+app = create_app('dev')
 CORS(app)
 manager = Manager(app)
 migrate = Migrate(app, db)
@@ -17,7 +17,7 @@ def make_shell_context():
 manager.add_command('db', MigrateCommand)
 manager.add_command('shell', Shell(make_context=make_shell_context))
 
-manager.add_command('runserver', app.run(host='0.0.0.0', port=8000))
+# manager.add_command('runserver', app.run(host='0.0.0.0', port=8000))
 
 if __name__ == '__main__':
     manager.run()

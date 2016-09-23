@@ -6,6 +6,7 @@ Flask-Migrate
 flask-testing
 qiniu
 flask_cors
-gunicorn
 MySQL-python
 httplib2
+gunicorn
+gevent
