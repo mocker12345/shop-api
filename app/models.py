@@ -199,7 +199,7 @@ def validate_schema(schema):
         def wrapper(*args, **kw):
             data, errors = schema.load(request.get_json())
             if errors:
-                return jsonify({'code': 400, 'errors': errors}), 400
+                return jsonify({'code': 400, 'errors': errors})
             return f(*args, **kw)
 
         return wrapper

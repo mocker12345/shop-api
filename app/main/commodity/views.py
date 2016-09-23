@@ -27,6 +27,14 @@ def api_commodity_all():
     return jsonify({'data': result.data, 'total_page': total_num, 'offset': offset})
 
 
+@commodity.route('/commodity/<int:commodity_id>', methods=['GET'])
+def api_get_by_id(commodity_id):
+    commodity = db.session.query(Commodity).get(commodity_id)
+    if commodity is None:
+        abort(404)
+    return commodity_schema.jsonify(commodity)
+
+
 @commodity.route('/commodity', methods=['POST'])
 @valid_token()
 @models.validate_json

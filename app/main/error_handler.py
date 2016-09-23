@@ -33,4 +33,4 @@ def not_server_error(e):
 
 @error.app_errorhandler(IntegrityError)
 def valid_exist(e):
-    return jsonify({'error': 4000, 'message': 'name is exist'})
+    return jsonify({'error': 400, 'message': 'name is exist'})
