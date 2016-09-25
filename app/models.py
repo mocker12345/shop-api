@@ -148,7 +148,7 @@ class Commodity(db.Model):
     cover_url = Column(String(255), nullable=False)
     price = Column(Numeric(10, 2), nullable=False)
     summary = Column(String(255), nullable=True, default=None)
-    buy_url = Column(String(255), nullable=False)
+    buy_url = Column(String(500), nullable=False)
     create_time = Column(db.DATETIME, default=datetime.datetime, nullable=False)
 
     def __init__(self, title, cover_url, price, summary, buy_url, create_time):
