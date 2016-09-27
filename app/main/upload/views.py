@@ -29,7 +29,8 @@ def upload_token():
 def upload():
     fs = request.files['file']
     key = gen_rnd_filename() + fs.filename
-    base_url = 'http://oce6f0hwv.bkt.clouddn.com/'
+    # base_url = 'http://oce6f0hwv.bkt.clouddn.com/'
+    base_url = 'http://oe548x17y.qnssl.com/'
     uptoken = json.loads(upload_token().data)
     ret, info = put_data(uptoken['uptoken'], key, fs.stream)
     return_name = ret['key']
